@@ -1,15 +1,15 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity ALU_Decoder is
+entity ALUdecoder is
 --break down the bits
     Port (opcode : in std_logic_vector(6 downto 0);
         funct3 : in std_logic_vector(2 downto 0);
         funct7 : in std_logic_vector(6 downto 0);
         ALUControl : out std_logic_vector(3 downto 0));
-end ALU_Decoder;
+end ALUdecoder;
 
-architecture behaviour of ALU_Decoder is
+architecture behaviour of ALUdecoder is
 begin
     process(opcode, funct3, funct7)
     begin
