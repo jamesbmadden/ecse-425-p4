@@ -50,9 +50,11 @@ architecture behaviour of processor is
   signal b_ex_reg1 : std_logic_vector(31 downto 0);
   signal b_ex_reg2 : std_logic_vector(31 downto 0);
   signal b_ex_instr : std_logic_vector(31 downto 0);
+  signal b_ex_imm : std_logic_vector(31 downto 0);
 
   -- execution stage signals
   signal s_ex_ALUControl : std_logic_vector(3 downto 0);
+  signal s_ex_ALUResult : std_logic_vector(31 downto 0);
 
 
   -- declare components
@@ -103,14 +105,14 @@ architecture behaviour of processor is
   end component;
 
   component ImmGen is
-    Port (
+    port (
       instruction : in std_logic_vector(31 downto 0);
       ExtImm : out std_logic_vector(31 downto 0)
     );
   end component;
 
   component control is
-    Port (
+    port (
       opcode : in  std_logic_vector (6 downto 0);
       --execution
       ALUSrc : out std_logic;
@@ -157,11 +159,20 @@ architecture behaviour of processor is
 
   -- execute stage components
   component ALUdecoder is
-    Port (
+    port (
       opcode : in std_logic_vector(6 downto 0);
       funct3 : in std_logic_vector(2 downto 0);
       funct7 : in std_logic_vector(6 downto 0);
       ALUControl : out std_logic_vector(3 downto 0)
+    );
+  end component;
+
+  component ALU is
+    port (
+      srcA : in std_logic_vector(31 downto 0);
+      srcB : in std_logic_vector(31 downto 0);
+      ALUControl : in std_logic_vector(3 downto 0);
+      ALUResult : out std_logic_vector(31 downto 0)
     );
   end component;
 
@@ -229,6 +240,7 @@ begin
     new_reg1 => s_re_d1,
     new_reg2 => s_re_d2,
     new_instr => s_re_instr,
+    new_imm => s_re_imm
     new_wb => '0',
     new_mr => s_c_mr,
     new_mw => s_c_mw,
@@ -240,6 +252,7 @@ begin
     reg1 => b_ex_reg1,
     reg2 => b_ex_reg2,
     instr => b_ex_instr,
+    imm => b_ex_imm,
     wb => b_ex_wb,
     mr => b_ex_mr,
     mw => b_ex_mw,
@@ -255,6 +268,13 @@ begin
     funct3 => b_ex_instr(14 downto 12),
     funct7 => b_ex_instr(31 downto 25),
     ALUControl => s_ex_ALUControl
+  );
+
+  ex_alu: ALU port map (
+    srcA => b_ex_reg1,
+    srcB => b_ex_reg2,
+    ALUControl => s_ex_ALUControl,
+    ALUResult => sex_ex_ALUResult
   );
 
 -- for testing: generate a clock here

@@ -12,6 +12,7 @@ entity exbuffer is
 		new_reg1 : in std_logic_vector(31 downto 0);
 		new_reg2 : in std_logic_vector(31 downto 0);
         new_instr : in std_logic_vector(31 downto 0);
+        new_imm : in std_logic_vector(31 downto 0);
         -- control unit values
         new_wb : in std_logic;
         new_mr : in std_logic;
@@ -24,6 +25,7 @@ entity exbuffer is
         reg1 : out std_logic_vector(31 downto 0);
         reg2 : out std_logic_vector(31 downto 0);
         instr : out std_logic_vector(31 downto 0);
+        imm : out std_logic_vector(31 downto 0);
         wb : out std_logic;
         mr : out std_logic;
         mw : out std_logic;
@@ -54,12 +56,14 @@ begin
                 reg1 <= (others => '0');
                 reg2 <= (others => '0');
                 pc <= (others => '0');
+                imm <= (others => '0');
                 instr <= "00000000000000000000000000010011"; -- addi x0, x0, 0; instr
             else 
                 pc <= new_pc;
                 instr <= new_instr;
                 reg1 <= new_reg1;
                 reg2 <= new_reg2;
+                imm <= new_imm;
                 wb <= new_wb;
                 mr <= new_mr;
                 mw <= new_mw;
