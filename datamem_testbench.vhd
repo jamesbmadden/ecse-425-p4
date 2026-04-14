@@ -19,6 +19,7 @@ architecture tb of datamem_tb is
     signal waitrequest : std_logic;
 
 begin
+
     uut : entity work.datamem
         port map (
             clk => clk,
@@ -42,145 +43,186 @@ begin
     end process;
 
     stim_proc : process
+        variable failures : integer := 0;
     begin
         wait for 2 ns;
 
-        -- write a full word at address 0
+        -- sw x"12345678" to address 0
         addr <= x"00000000";
         writedata <= x"12345678";
         funct3 <= "010";
         memwrite <= '1';
         memread <= '0';
         wait until rising_edge(clk);
-        wait for 1 ps;
         memwrite <= '0';
+        wait for 1 ps;
 
-        -- read it back with lw
+        -- lw from address 0
         addr <= x"00000000";
         funct3 <= "010";
         memread <= '1';
         wait until rising_edge(clk);
-        wait for 1 ps;
-        assert readdata = x"12345678"
-            report "lw failed after sw at address 0"
-            severity error;
         memread <= '0';
+        wait until rising_edge(clk);
+        wait for 1 ps;
+        if readdata /= x"12345678" then
+            assert false report "lw failed after sw at address 0" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- overwrite byte at address 1 with ab
+        -- sb x"ab" to address 1
         addr <= x"00000001";
         writedata <= x"000000AB";
         funct3 <= "000";
         memwrite <= '1';
         wait until rising_edge(clk);
-        wait for 1 ps;
         memwrite <= '0';
+        wait until rising_edge(clk);
+        wait for 1 ps;
 
-        -- read unsigned byte
+        -- lbu from address 1
         addr <= x"00000001";
         funct3 <= "100";
         memread <= '1';
         wait until rising_edge(clk);
+        memread <= '0';
+        wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"000000AB"
-            report "lbu failed at address 1"
-            severity error;
+        if readdata /= x"000000AB" then
+            assert false report "lbu failed at address 1" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- read signed byte
+        -- lb from address 1
         addr <= x"00000001";
         funct3 <= "000";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"FFFFFFAB"
-            report "lb failed sign extension at address 1"
-            severity error;
+        if readdata /= x"FFFFFFAB" then
+            assert false report "lb failed sign extension at address 1" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- read whole word again to check byte update
+        -- lw from address 0
         addr <= x"00000000";
         funct3 <= "010";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"1234AB78"
-            report "word contents wrong after sb"
-            severity error;
-        memread <= '0';
+        if readdata /= x"1234AB78" then
+            assert false report "word contents wrong after sb" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- overwrite upper halfword at address 2 with cdef
+        -- sh x"cdef" to address 2
         addr <= x"00000002";
         writedata <= x"0000CDEF";
         funct3 <= "001";
         memwrite <= '1';
         wait until rising_edge(clk);
-        wait for 1 ps;
         memwrite <= '0';
+        wait until rising_edge(clk);
+        wait for 1 ps;
 
-        -- read unsigned halfword
+        -- lhu from address 2
         addr <= x"00000002";
         funct3 <= "101";
         memread <= '1';
         wait until rising_edge(clk);
+        memread <= '0';
+        wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"0000CDEF"
-            report "lhu failed at address 2"
-            severity error;
+        if readdata /= x"0000CDEF" then
+            assert false report "lhu failed at address 2" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- read signed halfword
+        -- lh from address 2
         addr <= x"00000002";
         funct3 <= "001";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"FFFFCDEF"
-            report "lh failed sign extension at address 2"
-            severity error;
+        if readdata /= x"FFFFCDEF" then
+            assert false report "lh failed sign extension at address 2" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- read whole word again to check halfword update
+        -- lw from address 0
         addr <= x"00000000";
         funct3 <= "010";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"CDEFAB78"
-            report "word contents wrong after sh to upper halfword"
-            severity error;
-        memread <= '0';
+        if readdata /= x"CDEFAB78" then
+            assert false report "word contents wrong after sh to upper halfword" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- overwrite lower halfword with 007f
+        -- sh x"007f" to address 0
         addr <= x"00000000";
         writedata <= x"0000007F";
         funct3 <= "001";
         memwrite <= '1';
         wait until rising_edge(clk);
-        wait for 1 ps;
         memwrite <= '0';
+        wait until rising_edge(clk);
+        wait for 1 ps;
 
-        -- lhu should zero extend
+        -- lhu from address 0
         addr <= x"00000000";
         funct3 <= "101";
         memread <= '1';
         wait until rising_edge(clk);
+        memread <= '0';
+        wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"0000007F"
-            report "lhu failed at address 0"
-            severity error;
+        if readdata /= x"0000007F" then
+            assert false report "lhu failed at address 0" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- lh should also stay positive here
+        -- lh from address 0
         addr <= x"00000000";
         funct3 <= "001";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"0000007F"
-            report "lh failed positive halfword case"
-            severity error;
+        if readdata /= x"0000007F" then
+            assert false report "lh failed positive halfword case" severity error;
+            failures := failures + 1;
+        end if;
 
-        -- final word check
+        -- final lw from address 0
         addr <= x"00000000";
         funct3 <= "010";
+        memread <= '1';
+        wait until rising_edge(clk);
+        memread <= '0';
         wait until rising_edge(clk);
         wait for 1 ps;
-        assert readdata = x"CDEF007F"
-            report "final lw check failed"
-            severity error;
-        memread <= '0';
+        if readdata /= x"CDEF007F" then
+            assert false report "final lw check failed" severity error;
+            failures := failures + 1;
+        end if;
 
-        assert false report "datamem test passed" severity note;
+        if failures = 0 then
+            assert false report "datamem test passed" severity note;
+        else
+            assert false report "datamem test failed" severity failure;
+        end if;
+
         wait;
     end process;
 
