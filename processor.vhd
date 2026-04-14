@@ -51,6 +51,9 @@ architecture behaviour of processor is
   signal b_ex_reg2 : std_logic_vector(31 downto 0);
   signal b_ex_instr : std_logic_vector(31 downto 0);
 
+  -- execution stage signals
+  signal s_ex_ALUControl : std_logic_vector(3 downto 0);
+
 
   -- declare components
   -- instruction fetch stage components
@@ -152,6 +155,16 @@ architecture behaviour of processor is
 	  );
   end component;
 
+  -- execute stage components
+  component ALUdecoder is
+    Port (
+      opcode : in std_logic_vector(6 downto 0);
+      funct3 : in std_logic_vector(2 downto 0);
+      funct7 : in std_logic_vector(6 downto 0);
+      ALUControl : out std_logic_vector(3 downto 0)
+    );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -234,6 +247,14 @@ begin
     mtr => b_ex_mtr,
     alu => b_ex_alu,
     rw => b_ex_rw
+  );
+
+  -- execution stage components
+  ex_alude: ALUdecoder port map (
+    opcode => b_ex_instr(6 downto 0),
+    funct3 => b_ex_instr(14 downto 12),
+    funct7 => b_ex_instr(31 downto 25),
+    ALUControl => s_ex_ALUControl
   );
 
 -- for testing: generate a clock here
