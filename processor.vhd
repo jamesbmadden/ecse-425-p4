@@ -38,7 +38,6 @@ architecture behaviour of processor is
   signal s_c_rw : std_logic := '0'; -- RegWrite
 
   -- execution buffer signals
-  signal b_ex_stall : std_logic := '0';
   signal b_ex_mr : std_logic := '0';
   signal b_ex_mw : std_logic := '0';
   signal b_ex_b : std_logic := '0';
@@ -76,9 +75,13 @@ architecture behaviour of processor is
   signal b_wb_rw : std_logic;
   signal b_wb_alu_res : std_logic_vector(31 downto 0);
   signal b_wb_data : std_logic_vector(31 downto 0);
+  signal b_wb_rd : std_logic_vector(4 downto 0);
 
   -- writeback stage signals
   signal s_wb_data : std_logic_vector(31 downto 0);
+
+  -- hazard detection signals
+  signal s_hdu_stall : std_logic := '0';
 
   -- declare components
   -- instruction fetch stage components
@@ -105,6 +108,7 @@ architecture behaviour of processor is
   component regbuffer is
     port (
       clk : in std_logic;
+      stall : in std_logic;
       new_pc : in std_logic_vector(31 downto 0);
       new_instr : in std_logic_vector(31 downto 0);
       pc : out std_logic_vector(31 downto 0);
@@ -277,7 +281,7 @@ begin
   -- instruction fetch stage (pc, instrmem, regbuf)
 	if_pc: pc port map (
 		clk => clk,
-		stall => w, -- program shouldn't continue while instrmem write is going
+		stall => (w or s_hdu_stall), -- program shouldn't continue while instrmem write is going
 		w => b_mem_btaken,
     w_addr => s_ex_alu_srcB,
     addr => s_pc_out
@@ -293,6 +297,7 @@ begin
 
   b_reg: regbuffer port map (
     clk => clk,
+    stall => s_hdu_stall,
     new_pc => s_if_addr,
     new_instr => s_if_instr,
     pc => s_re_pc,
@@ -328,7 +333,7 @@ begin
   -- execution buffer
   b_ex: exbuffer port map (
     clk => clk,
-    stall => b_ex_stall,
+    stall => s_hdu_stall,
     new_pc => s_re_pc,
     new_reg1 => s_re_d1,
     new_reg2 => s_re_d2,
@@ -416,10 +421,12 @@ begin
     new_rw => b_mem_rw,
 		new_alu_res => b_mem_alu_res,
 		new_memdata => s_mem_data,
+    new_rd => b_mem_instr(11 downto 7), -- rd from the current instr
     mtr => b_wb_mtr,
     rw => b_wb_rw,
     alu_res => b_wb_alu_res,
-    memdata => b_wb_data
+    memdata => b_wb_data,
+    rd => b_wb_rd
   );
 
 -- for testing: generate a clock here
@@ -430,5 +437,38 @@ BEGIN
 	clk <= '1';
 	WAIT FOR clk_period/2;
 END PROCESS;
+
+-- hazard detection 
+-- stalls if register stage needs a register that's gonna be written to
+process(s_re_instr, b_ex_instr, b_mem_instr, b_wb_rd, b_ex_rw, b_mem_rw, b_wb_rw)
+
+  variable rs1, rs2 : std_logic_vector(4 downto 0);
+  variable ex_rd, mem_rd : std_logic_vector(4 downto 0);
+
+begin
+  rs1 := s_re_instr(19 downto 15);
+  rs2 := s_re_instr(24 downto 20);
+  ex_rd := b_ex_instr(11 downto 7);
+  mem_rd := b_mem_instr(11 downto 7);
+    
+  s_hdu_stall <= '0';
+
+  -- read after write hazards
+  if (rs1 /= "00000") then
+    if (rs1 = ex_rd and b_ex_rw = '1') or 
+      (rs1 = mem_rd and b_mem_rw = '1') or 
+      (rs1 = b_wb_rd and b_wb_rw = '1') then
+      s_hdu_stall <= '1';
+    end if;
+  end if;
+
+  if (rs2 /= "00000") then
+    if (rs2 = ex_rd and b_ex_rw = '1') or 
+      (rs2 = mem_rd and b_mem_rw = '1') or 
+      (rs2 = b_wb_rd and b_wb_rw = '1') then
+      s_hdu_stall <= '1';
+    end if;
+  end if;
+end process;
 
 end behaviour;
