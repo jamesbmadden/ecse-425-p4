@@ -50,6 +50,7 @@ architecture behaviour of processor is
   signal s_ex_ALUControl : std_logic_vector(3 downto 0);
   signal s_ex_ALUResult : std_logic_vector(31 downto 0);
   signal s_ex_alu_srcB : std_logic_vector(31 downto 0);
+  signal s_ex_target : std_logic_vector(31 downto 0);
   signal s_ex_btake : std_logic;
 
   -- memory buffer signals
@@ -61,6 +62,7 @@ architecture behaviour of processor is
   signal b_mem_instr : std_logic_vector(31 downto 0);
   signal b_mem_reg2 : std_logic_vector(31 downto 0);
   signal b_mem_alu_res : std_logic_vector(31 downto 0);
+  signal b_mem_target : std_logic_vector(31 downto 0);
 
   -- memory stage signals
   signal s_mem_data : std_logic_vector(31 downto 0);
@@ -222,6 +224,7 @@ architecture behaviour of processor is
       new_instr : in std_logic_vector(31 downto 0);
       new_reg2 : in std_logic_vector(31 downto 0);
       new_alu_res : in std_logic_vector(31 downto 0);
+      new_target : in std_logic_vector(31 downto 0);
       btaken : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
@@ -229,7 +232,8 @@ architecture behaviour of processor is
       rw : out std_logic;
       instr : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
-      alu_res : out std_logic_vector(31 downto 0)
+      alu_res : out std_logic_vector(31 downto 0);
+      target : out std_logic_vector(31 downto 0)
 	  );
   end component;
 
@@ -277,6 +281,8 @@ begin
   s_wb_data <= b_wb_data when b_wb_mtr = '1' else b_wb_alu_res;
   -- whether the pc should stall
   s_pc_stall <= w or s_hdu_stall;
+  -- calculate the location for a jump
+  s_ex_target <= std_logic_vector(unsigned(b_ex_pc) + unsigned(b_ex_imm));
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -284,7 +290,7 @@ begin
 		clk => clk,
 		stall => s_pc_stall, -- program shouldn't continue while instrmem write is going
 		w => b_mem_btaken,
-    w_addr => s_ex_alu_srcB,
+    w_addr => b_mem_target,
     addr => s_pc_out
 	);
 
@@ -386,22 +392,24 @@ begin
   -- memory buffer (almost there!!)
   b_mem: membuffer port map (
     clk => clk,
-    new_btaken => b_mem_btaken,
-    new_mr => b_mem_mr,
-    new_mw => b_mem_mw,
-    new_mtr => b_mem_mtr,
-    new_rw => b_mem_rw,
-    new_instr => b_mem_instr,
-    new_reg2 => b_mem_reg2,
-    new_alu_res => b_mem_alu_res,
-    btaken => s_ex_btake,
-    mr => b_ex_mr,
-    mw => b_ex_mw,
-    mtr => b_ex_mtr,
-    rw => b_ex_rw,
-    instr => b_ex_instr,
-    reg2 => b_ex_reg2,
-    alu_res => s_ex_ALUResult
+    btaken => b_mem_btaken,
+    mr => b_mem_mr,
+    mw => b_mem_mw,
+    mtr => b_mem_mtr,
+    rw => b_mem_rw,
+    instr => b_mem_instr,
+    reg2 => b_mem_reg2,
+    alu_res => b_mem_alu_res,
+    target => b_mem_target,
+    new_target => s_ex_target,
+    new_btaken => s_ex_btake,
+    new_mr => b_ex_mr,
+    new_mw => b_ex_mw,
+    new_mtr => b_ex_mtr,
+    new_rw => b_ex_rw,
+    new_instr => b_ex_instr,
+    new_reg2 => b_ex_reg2,
+    new_alu_res => s_ex_ALUResult
   );
 
   -- memory stage components

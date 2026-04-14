@@ -14,6 +14,7 @@ entity membuffer is
 		new_instr : in std_logic_vector(31 downto 0);
         new_reg2 : in std_logic_vector(31 downto 0);
         new_alu_res : in std_logic_vector(31 downto 0);
+        new_target : in std_logic_vector(31 downto 0);
         btaken : out std_logic;
         mr : out std_logic;
         mw : out std_logic;
@@ -21,7 +22,8 @@ entity membuffer is
         rw : out std_logic;
         instr : out std_logic_vector(31 downto 0);
         reg2 : out std_logic_vector(31 downto 0);
-        alu_res : out std_logic_vector(31 downto 0)
+        alu_res : out std_logic_vector(31 downto 0);
+        target : out in std_logic_vector(31 downto 0)
 	);
 end membuffer;
 
@@ -41,6 +43,7 @@ begin
             instr <= new_instr;
             reg2 <= new_reg2;
             alu_res <= new_alu_res;
+            target <= new_target;
         end if;
 	end process;
 
