@@ -10,6 +10,7 @@ entity register_file is
         
         instr      : in std_logic_vector(31 downto 0);
         write_data : in std_logic_vector(31 downto 0);
+        w_addr     : in std_logic_vector(4 downto 0);
 
         rs1_data   : out std_logic_vector(31 downto 0);
         rs2_data   : out std_logic_vector(31 downto 0)
@@ -22,13 +23,11 @@ architecture behaviour of register_file is
 
     signal rs1_addr : std_logic_vector(4 downto 0);
     signal rs2_addr : std_logic_vector(4 downto 0);
-    signal rd_addr  : std_logic_vector(4 downto 0);
 
 begin
     -- extract addresses from instr
     rs2_addr <= instr(24 downto 20);
     rs1_addr <= instr(19 downto 15);
-    rd_addr  <= instr(11 downto 7);
 
     process(clk)
     begin
@@ -37,8 +36,8 @@ begin
                 regs <= (others => (others => '0'));
             else
                 -- write if enabled and not writing to x0
-                if reg_write = '1' and rd_addr /= "00000" then
-                    regs(to_integer(unsigned(rd_addr))) <= write_data;
+                if reg_write = '1' and w_addr /= "00000" then
+                    regs(to_integer(unsigned(w_addr))) <= write_data;
                 end if;
 
                 -- x0 must be 0

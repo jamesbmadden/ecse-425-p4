@@ -121,6 +121,7 @@ architecture behaviour of processor is
       
       instr      : in std_logic_vector(31 downto 0);
       write_data : in std_logic_vector(31 downto 0);
+      w_addr     : in std_logic_vector(4 downto 0);
 
       rs1_data   : out std_logic_vector(31 downto 0);
       rs2_data   : out std_logic_vector(31 downto 0)
@@ -307,10 +308,11 @@ begin
   -- register stage (register file, immediate generator/sign extender)
   re_fi: register_file port map (
     clk => clk,
-    reset => rst,
+    reset => '0',
     reg_write => b_wb_rw,
     instr => s_re_instr,
     write_data => s_wb_data,
+    w_addr => b_wb_rd,
     rs1_data => s_re_d1,
     rs2_data => s_re_d2
   );
