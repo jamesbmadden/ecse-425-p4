@@ -30,7 +30,6 @@ architecture behaviour of processor is
   signal s_re_d1 : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_d2 : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_imm : std_logic_vector(31 downto 0) := (others => '0');
-  signal s_re_regwrite : std_logic := '0';
   signal s_c_b : std_logic := '0'; -- control unit things to pass to the exbuffer
   signal s_c_alu : std_logic := '0';
   signal s_c_mr : std_logic := '0'; -- MemRed
@@ -71,6 +70,15 @@ architecture behaviour of processor is
   -- memory stage signals
   signal s_mem_data : std_logic_vector(31 downto 0);
   signal s_mem_waitreq : std_logic;
+
+  -- writeback buffer signals
+  signal b_wb_mtr : std_logic;
+  signal b_wb_rw : std_logic;
+  signal b_wb_alu_res : std_logic_vector(31 downto 0);
+  signal b_wb_data : std_logic_vector(31 downto 0);
+
+  -- writeback stage signals
+  signal s_wb_data : std_logic_vector(31 downto 0);
 
   -- declare components
   -- instruction fetch stage components
@@ -238,6 +246,21 @@ architecture behaviour of processor is
     );
   end component;
 
+  -- FINALLY, the write-back buffer!
+  component wbbuffer is
+	  port (
+		  clk : in std_logic;
+      new_mtr : in std_logic;
+      new_rw : in std_logic;
+		  new_alu_res : in std_logic_vector(31 downto 0);
+		  new_memdata : in std_logic_vector(31 downto 0);
+      mtr : out std_logic;
+      rw : out std_logic;
+      alu_res : out std_logic_vector(31 downto 0);
+      memdata : out std_logic_vector(31 downto 0)
+	  );
+  end component;
+
 
   CONSTANT clk_period : time := 1 ns;
 
@@ -247,6 +270,8 @@ begin
   s_ex_alu_srcB <= b_ex_imm when b_ex_alu = '1' else b_ex_reg2;
   -- select write address in write mode, otherwise pc output
   s_if_addr <= w_addr when w = '1' else s_pc_out;
+  -- select what will get written back to the register
+  s_wb_data <= b_wb_data when b_wb_mtr = '1' else b_wb_alu_res;
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -278,9 +303,9 @@ begin
   re_fi: register_file port map (
     clk => clk,
     reset => rst,
-    reg_write => s_re_regwrite,
+    reg_write => b_wb_rw,
     instr => s_re_instr,
-    write_data => (others => '0'),
+    write_data => s_wb_data,
     rs1_data => s_re_d1,
     rs2_data => s_re_d2
   );
@@ -382,6 +407,19 @@ begin
     memread => b_mem_mr,
     readdata => s_mem_data,
     waitrequest => s_mem_waitreq
+  );
+
+  -- FINALLY, the writeback buffer
+  b_wb: wbbuffer port map (
+    clk => clk,
+    new_mtr => b_mem_mtr,
+    new_rw => b_mem_rw,
+		new_alu_res => b_mem_alu_res,
+		new_memdata => s_mem_data,
+    mtr => b_wb_mtr,
+    rw => b_wb_rw,
+    alu_res => b_wb_alu_res,
+    memdata => b_wb_data
   );
 
 -- for testing: generate a clock here
