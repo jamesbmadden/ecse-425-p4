@@ -22,9 +22,10 @@ architecture behaviour of processor is
   -- register stage signals
   signal s_re_pc : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_instr : std_logic_vector(31 downto 0) := (others => '0');
-  signal s_rf_wd : std_logic_vector(31 downto 0) := (others => '0');
-  signal s_rf_d1 : std_logic_vector(31 downto 0) := (others => '0');
-  signal s_rf_d2 : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_wd : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_d1 : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_d2 : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_imm : std_logic_vector(31 downto 0) := (others => '0');
 
 
   -- declare components
@@ -74,6 +75,13 @@ architecture behaviour of processor is
     );
   end component;
 
+  component ImmGen is
+    Port (
+      instruction : in std_logic_vector(31 downto 0);
+      ExtImm : out std_logic_vector(31 downto 0)
+    );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -112,6 +120,11 @@ begin
     write_data => (others => '0'),
     rs1_data => s_re_d1,
     rs2_data => s_re_d2
+  );
+
+  re_ig: ImmGen port map (
+    instruction => s_re_instr,
+    ExtImm => s_re_imm
   );
 
 clk_process : PROCESS
