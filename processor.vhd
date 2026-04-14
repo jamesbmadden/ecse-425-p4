@@ -4,8 +4,7 @@ use ieee.numeric_std.all;
 
 entity processor is
   port (
-    -- clk : in std_logic;
-    -- rst : in std_logic;
+    clk : in std_logic;
     w : in std_logic;
     w_data : in std_logic_vector(31 downto 0);
     w_addr : in std_logic_vector(31 downto 0)
@@ -13,10 +12,6 @@ entity processor is
 end processor;
 
 architecture behaviour of processor is
-
-  -- global signals
-  signal clk : std_logic; -- temporary for debugging
-  signal rst : std_logic; -- temporary for debugging
 
   -- instruction fetch stage signals
   signal s_if_addr : std_logic_vector(31 downto 0) := (others => '0');
@@ -433,15 +428,6 @@ begin
     memdata => b_wb_data,
     rd => b_wb_rd
   );
-
--- for testing: generate a clock here
-clk_process : PROCESS
-BEGIN
-	clk <= '0';
-	WAIT FOR clk_period/2;
-	clk <= '1';
-	WAIT FOR clk_period/2;
-END PROCESS;
 
 -- hazard detection 
 -- stalls if register stage needs a register that's gonna be written to
