@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 entity datamem is
     port (
         clk : in std_logic;
-        addr : in std _logic_vector(31 downto 0);
+        addr : in std_logic_vector(31 downto 0);
         writedata : in std_logic_vector(31 downto 0);
         funct3 : in std_logic_vector(2 downto 0);
         memwrite : in std_logic;
