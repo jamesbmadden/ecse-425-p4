@@ -11,11 +11,11 @@ ENTITY memory IS
 	);
 	PORT (
 		clock: IN STD_LOGIC;
-		writedata: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		address: IN INTEGER RANGE 0 TO ram_size-1;
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 		waitrequest: OUT STD_LOGIC
 	);
 END memory;
@@ -40,12 +40,18 @@ BEGIN
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
-				ram_block(address) <= writedata;
+				ram_block(address) <= writedata(31 downto 24);
+				ram_block(address + 1) <= writedata(23 downto 16);
+				ram_block(address + 2) <= writedata(15 downto 8);
+				ram_block(address + 3) <= writedata(7 downto 0);
 			END IF;
 		read_address_reg <= address;
 		END IF;
 	END PROCESS;
-	readdata <= ram_block(read_address_reg);
+	readdata(31 downto 24) <= ram_block(read_address_reg);
+	readdata(23 downto 16) <= ram_block(read_address_reg + 1);
+	readdata(15 downto 8) <= ram_block(read_address_reg + 2);
+	readdata(7 downto 0) <= ram_block(read_address_reg + 3);
 
 
 	--The waitrequest signal is used to vary response time in simulation
