@@ -37,6 +37,20 @@ architecture behaviour of processor is
   signal s_c_mtr : std_logic := '0'; -- MemToReg
   signal s_c_rw : std_logic := '0'; -- RegWrite
 
+  -- execution buffer signals
+  signal b_ex_stall : std_logic := '0';
+  signal b_ex_wb : std_logic := '0';
+  signal b_ex_mr : std_logic := '0';
+  signal b_ex_mw : std_logic := '0';
+  signal b_ex_b : std_logic := '0';
+  signal b_ex_mtr : std_logic := '0';
+  signal b_ex_alu : std_logic := '0';
+  signal b_ex_rw : std_logic := '0';
+  signal b_ex_pc : std_logic_vector(31 downto 0);
+  signal b_ex_reg1 : std_logic_vector(31 downto 0);
+  signal b_ex_reg2 : std_logic_vector(31 downto 0);
+  signal b_ex_instr : std_logic_vector(31 downto 0);
+
 
   -- declare components
   -- instruction fetch stage components
@@ -107,6 +121,37 @@ architecture behaviour of processor is
     );
   end component;
 
+  -- execution buffer
+  component exbuffer is
+    port (
+		  clk : in std_logic;
+      stall : in std_logic;
+      new_pc : in std_logic_vector(31 downto 0);
+		  new_reg1 : in std_logic_vector(31 downto 0);
+		  new_reg2 : in std_logic_vector(31 downto 0);
+      new_instr : in std_logic_vector(31 downto 0);
+      -- control unit values
+      new_wb : in std_logic;
+      new_mr : in std_logic;
+      new_mw : in std_logic;
+      new_b : in std_logic;
+      new_mtr : in std_logic;
+      new_alu : in std_logic;
+      new_rw : in std_logic;
+      pc : out std_logic_vector(31 downto 0);
+      reg1 : out std_logic_vector(31 downto 0);
+      reg2 : out std_logic_vector(31 downto 0);
+      instr : out std_logic_vector(31 downto 0);
+      wb : out std_logic;
+      mr : out std_logic;
+      mw : out std_logic;
+      b : out std_logic;
+      mtr : out std_logic;
+      alu : out std_logic;
+      rw : out std_logic
+	  );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -161,6 +206,34 @@ begin
     MemWrite => s_c_mw,
     MemtoReg => s_c_mtr,
     RegWrite => s_c_rw
+  );
+
+  -- execution buffer
+  b_ex: exbuffer port map (
+    clk => clk,
+    stall => b_ex_stall,
+    new_pc => s_re_pc,
+    new_reg1 => s_re_d1,
+    new_reg2 => s_re_d2,
+    new_instr => s_re_instr,
+    new_wb => '0',
+    new_mr => s_c_mr,
+    new_mw => s_c_mw,
+    new_b => s_c_b,
+    new_mtr => s_c_mtr,
+    new_alu => s_c_alu,
+    new_rw => s_c_rw,
+    pc => b_ex_pc,
+    reg1 => b_ex_reg1,
+    reg2 => b_ex_reg2,
+    instr => b_ex_instr,
+    wb => b_ex_wb,
+    mr => b_ex_mr,
+    mw => b_ex_mw,
+    b => b_ex_b,
+    mtr => b_ex_mtr,
+    alu => b_ex_alu,
+    rw => b_ex_rw
   );
 
 -- for testing: generate a clock here
