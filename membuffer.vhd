@@ -23,7 +23,7 @@ entity membuffer is
         instr : out std_logic_vector(31 downto 0);
         reg2 : out std_logic_vector(31 downto 0);
         alu_res : out std_logic_vector(31 downto 0);
-        target : out in std_logic_vector(31 downto 0)
+        target : out std_logic_vector(31 downto 0)
 	);
 end membuffer;
 
