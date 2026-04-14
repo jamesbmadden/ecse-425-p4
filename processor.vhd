@@ -26,6 +26,13 @@ architecture behaviour of processor is
   signal s_re_d1 : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_d2 : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_imm : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_regwrite : std_logic := '0';
+  signal s_c_b : std_logic := '0'; -- control unit things to pass to the exbuffer
+  signal s_c_alu : std_logic := '0';
+  signal s_c_mr : std_logic := '0'; -- MemRed
+  signal s_c_mw : std_logic := '0'; -- MemWrite
+  signal s_c_mtr : std_logic := '0'; -- MemToReg
+  signal s_c_rw : std_logic := '0'; -- RegWrite
 
 
   -- declare components
@@ -82,6 +89,21 @@ architecture behaviour of processor is
     );
   end component;
 
+  component control is
+    Port (
+      opcode : in  std_logic_vector (6 downto 0);
+      --execution
+      ALUSrc : out std_logic;
+      --memory
+      Branch : out std_logic;
+      MemRead : out std_logic;
+      MemWrite : out std_logic; 
+      --write back
+      MemtoReg : out std_logic;
+      RegWrite : out std_logic
+    );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -116,6 +138,7 @@ begin
   re_fi: register_file port map (
     clk => clk,
     reset => rst,
+    reg_write => s_re_regwrite,
     instr => s_re_instr,
     write_data => (others => '0'),
     rs1_data => s_re_d1,
@@ -125,6 +148,16 @@ begin
   re_ig: ImmGen port map (
     instruction => s_re_instr,
     ExtImm => s_re_imm
+  );
+
+  re_ct: control port map (
+    opcode => s_re_instr(6 downto 0),
+    ALUSrc => s_c_alu,
+    Branch => s_c_b,
+    MemRead => s_c_mr,
+    MemWrite => s_c_mw,
+    MemtoReg => s_c_mtr,
+    RegWrite => s_c_rw
   );
 
 clk_process : PROCESS
