@@ -1,6 +1,6 @@
-library.IEEE
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity register_file is
     port (
@@ -15,7 +15,7 @@ entity register_file is
         write_data : in std_logic_vector(31 downto 0);
 
         rs1_data : out std_logic_vector(31 downto 0);
-        rs2_data : out std_logic_vector(31 downto 0);
+        rs2_data : out std_logic_vector(31 downto 0)
     );
 end entity register_file;
 
