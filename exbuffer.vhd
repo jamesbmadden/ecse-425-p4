@@ -49,7 +49,7 @@ begin
             mw <= '0';
             rega <= (others => '0');
             regb <= (others => '0');
-            instr <= "00000000000000000000000000010011";
+            instr <= "00000000000000000000000000010011"; -- addi x0, x0, 0; instr
         else 
             pc <= s_pc;
             rega <= s_rega;
