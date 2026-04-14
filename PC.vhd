@@ -25,17 +25,19 @@ begin
 	process(clk)
 	begin
 	
-		-- output the current count
-		addr <= s_addr;
+		if rising_edge(clk) then
+			-- output the current count
+			addr <= s_addr;
 		
-		-- only update the value if not stalling
-		if stall = '0' then
-			if w = '1' then
-				-- set the signal to the inputted addr
-				s_addr <= w_addr;
-			else
-				-- just increment
-				s_addr <= s_addr + 4;
+			-- only update the value if not stalling
+			if stall = '0' then
+				if w = '1' then
+					-- set the signal to the inputted addr
+					s_addr <= w_addr;
+				else
+					-- just increment
+					s_addr <= std_logic_vector(unsigned(s_addr) + 4);
+				end if;
 			end if;
 		end if;
 	
