@@ -6,7 +6,7 @@ entity datamem is
     port (
         clk : in std_logic;
         addr : in std_logic_vector(31 downto 0);
-        writedata : in std_logic_vector(31 downto 0);
+        writedata : in std_logic_vector(7 downto 0);
         funct3 : in std_logic_vector(2 downto 0);
         memwrite : in std_logic;
         memread : in std_logic;
