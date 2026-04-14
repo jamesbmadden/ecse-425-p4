@@ -16,7 +16,6 @@ end instrmem;
 
 architecture behaviour of instrmem is
 
-	-- describe the memory component
 	component memory is
 		PORT (
 			clock: IN STD_LOGIC;
@@ -31,6 +30,7 @@ architecture behaviour of instrmem is
 	
 begin
 
+	-- connect to the appropriate ports of a memory instance
 	MEM: memory port map (
 		clock => clk,
 		writedata => open,
