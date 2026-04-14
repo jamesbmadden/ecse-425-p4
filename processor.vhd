@@ -253,8 +253,8 @@ begin
 	if_pc: pc port map (
 		clk => clk,
 		stall => w, -- program shouldn't continue while instrmem write is going
-		w => '0',
-    w_addr => (others => '0'),
+		w => b_mem_btaken,
+    w_addr => s_ex_alu_srcB,
     addr => s_pc_out
 	);
 
