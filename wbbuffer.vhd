@@ -2,11 +2,10 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
--- holds values for a clock cycle for the register stage, except for the instr read which is delayed
+-- holds values for a clock cycle for the register stage, except for the memdata which is delayed
 -- a clock cycle by the memory read already
 entity wbbuffer is
 	port (
-		-- instrmem has to take in an address and return a value
 		clk : in std_logic;
         new_mtr : in std_logic;
         new_rw : in std_logic;
