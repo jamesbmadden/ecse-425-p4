@@ -21,6 +21,7 @@ architecture behaviour of processor is
   -- instruction fetch stage signals
   signal s_if_addr : std_logic_vector(31 downto 0) := (others => '0');
   signal s_if_instr : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_pc_out : std_logic_vector(31 downto 0) := (others => '0');
 
   -- register stage signals
   signal s_re_pc : std_logic_vector(31 downto 0) := (others => '0');
@@ -70,6 +71,8 @@ architecture behaviour of processor is
   signal b_mem_alu_res : std_logic_vector(31 downto 0);
 
   -- memory stage signals
+  signal s_mem_data : std_logic_vector(31 downto 0);
+  signal s_mem_waitreq : std_logic;
 
   -- declare components
   -- instruction fetch stage components
@@ -248,6 +251,8 @@ begin
 
   -- this is the multiplexer for reg2 or immediate before the ALU
   s_ex_alu_srcB <= b_ex_imm when b_ex_alu = '1' else b_ex_reg2;
+  -- select write address in write mode, otherwise pc output
+  s_if_addr <= w_addr when '1' else s_pc_out;
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -256,7 +261,7 @@ begin
 		stall => w, -- program shouldn't continue while instrmem write is going
 		w => '0',
     w_addr => (others => '0'),
-    addr => s_if_addr
+    addr => s_pc_out
 	);
 
   if_im: instrmem port map (
@@ -377,6 +382,18 @@ begin
     alu_res => s_ex_ALUResult
   );
 
+  -- memory stage components
+  mem_mem: datamem port map (
+    clk => clk,
+    addr => b_mem_alu_res,
+    writedata => b_mem_reg2,
+    funct3 => b_mem_instr(14 downto 12),
+    memwrite => b_mem_mw,
+    memread => b_mem_mr,
+    readdata => s_mem_data,
+    waitrequest => s_mem_waitreq
+  );
+
 -- for testing: generate a clock here
 clk_process : PROCESS
 BEGIN
@@ -385,12 +402,5 @@ BEGIN
 	clk <= '1';
 	WAIT FOR clk_period/2;
 END PROCESS;
-
-write_process : process(w, w_addr)
-begin
-  if w = '1' then
-    s_if_addr <= w_addr;
-  end if;
-end process;
 
 end behaviour;
