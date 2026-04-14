@@ -1,6 +1,6 @@
-library ieee;
-use IEEE.std_logic_1164.all;
-use ieee.numeric_std.all;
+library.IEEE
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
 
 entity register_file is
     port (
@@ -15,11 +15,13 @@ entity register_file is
         write_data : in std_logic_vector(31 downto 0);
 
         rs1_data : out std_logic_vector(31 downto 0);
-        rs2_data : out std_logic_vector(31 downto 0)
+        rs2_data : out std_logic_vector(31 downto 0);
     );
 end entity register_file;
 
 architecture Behavioral of register_file is
+    type reg_array_type is array (0 to 31) of std_logic_vector(31 downto 0);
+    signal regs : reg_array_type := (others => (others => '0'));
 
 begin
     process(clk)
