@@ -1,1 +1,2 @@
-# ECSE 425 P4\nBy James, Carmin, and Sydney
+# ECSE 425 P4
+By James, Carmin, and Sydney
