@@ -72,6 +72,7 @@ begin
                 --andi
                 elsif funct3 = "111" then
                     ALUControl <= "0010";
+                end if;
 
             --compute memory address for lw and sw: r1+offset
             when "0000011" | "0100011" =>
@@ -81,7 +82,7 @@ begin
             when "1100011" => -- Branches
                 ALUControl <= "0001";
 
-            lui, auipc, jal, jalr: addition to compute pc or address
+            -- lui, auipc, jal, jalr: addition to compute pc or address
             when "0110111" | "0010111" | "1101111" | "1100111" =>
                 ALUControl <= "0000";
 
