@@ -58,6 +58,17 @@ architecture behaviour of processor is
   signal s_ex_alu_srcB : std_logic_vector(31 downto 0);
   signal s_ex_btake : std_logic;
 
+  -- memory buffer signals
+  signal b_mem_btaken : std_logic;
+  signal b_mem_wb : std_logic;
+  signal b_mem_mr : std_logic;
+  signal b_mem_mw : std_logic;
+  signal b_mem_mtr : std_logic;
+  signal b_mem_rw : std_logic;
+  signal b_mem_instr : std_logic_vector(31 downto 0);
+  signal b_mem_reg2 : std_logic_vector(31 downto 0);
+  signal b_mem_alu_res : std_logic_vector(31 downto 0);
+
   -- declare components
   -- instruction fetch stage components
   component pc is
@@ -189,6 +200,31 @@ architecture behaviour of processor is
     );
   end component;
 
+  -- memory buffer
+  component membuffer is
+	  port (
+      clk : in std_logic;
+      new_btaken : in std_logic;
+      new_wb : in std_logic;
+      new_mr : in std_logic;
+      new_mw : in std_logic;
+      new_mtr : in std_logic;
+      new_rw : in std_logic;
+      new_instr : in std_logic_vector(31 downto 0);
+      new_reg2 : in std_logic_vector(31 downto 0);
+      new_alu_res : in std_logic_vector(31 downto 0);
+      btaken : out std_logic;
+      wb : out std_logic;
+      mr : out std_logic;
+      mw : out std_logic;
+      mtr : out std_logic;
+      rw : in std_logic;
+      instr : out std_logic_vector(31 downto 0);
+      reg2 : out std_logic_vector(31 downto 0);
+      alu_res : out std_logic_vector(31 downto 0)
+	  );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -301,6 +337,29 @@ begin
     branch_take => s_ex_btake
   );
 
+  -- memory buffer (almost there!!)
+  b_mem: membuffer port map (
+    clk => clk,
+    new_btaken => b_mem_btaken,
+    new_wb => b_mem_wb,
+    new_mr => b_mem_mr,
+    new_mw => b_mem_mw,
+    new_mtr => b_mem_mtr,
+    new_rw => b_mem_rw,
+    new_instr => b_mem_instr,
+    new_reg2 => b_mem_reg2,
+    new_alu_res => b_mem_alu_res,
+    btaken => s_ex_btake,
+    wb => b_ex_wb,
+    mr => b_ex_mr,
+    mw => b_ex_mw,
+    mtr => b_ex_mtr,
+    rw => b_ex_rw,
+    instr => b_ex_instr,
+    reg2 => b_ex_reg2,
+    alu_res => s_ex_ALUResult
+  );
+
 -- for testing: generate a clock here
 clk_process : PROCESS
 BEGIN
@@ -310,7 +369,7 @@ BEGIN
 	WAIT FOR clk_period/2;
 END PROCESS;
 
-write_process : process(w)
+write_process : process(w, w_addr)
 begin
   if w = '1' then
     s_if_addr <= w_addr;
