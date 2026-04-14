@@ -25,9 +25,11 @@ begin
     -- update values
     process(clk)
 	begin
-		pc <= s_pc;
-        instr <= new_instr; -- since it's already delayed a clock cycle
-        s_pc <= new_pc;
+        if rising_edge(clk) then
+            pc <= s_pc;
+            instr <= new_instr; -- since it's already delayed a clock cycle
+            s_pc <= new_pc;
+        end if;
 	end process;
 
 end architecture;
