@@ -11,10 +11,12 @@ entity wbbuffer is
         new_rw : in std_logic;
 		new_alu_res : in std_logic_vector(31 downto 0);
 		new_memdata : in std_logic_vector(31 downto 0);
+        new_rd : in std_logic_vector(4 downto 0);
         mtr : out std_logic;
         rw : out std_logic;
         alu_res : out std_logic_vector(31 downto 0);
-        memdata : out std_logic_vector(31 downto 0)
+        memdata : out std_logic_vector(31 downto 0);
+        rd : out std_logic_vector(4 downto 0)
 	);
 end wbbuffer;
 
@@ -22,6 +24,7 @@ architecture behaviour of wbbuffer is
 
     -- implement a 1-clock delay by holding a value of pc here
     signal s_alu_res : std_logic_vector(31 downto 0);
+    signal s_rd : std_logic_vector(4 downto 0);
     signal s_mtr : std_logic;
     signal s_rw : std_logic;
 
@@ -34,9 +37,11 @@ begin
             mtr <= s_mtr;
             rw <= s_rw;
             alu_res <= s_alu_res;
+            rd <= s_rd;
             s_mtr <= new_mtr;
             s_rw <= new_rw;
             s_alu_res <= new_alu_res;
+            s_rd <= new_rd;
             memdata <= new_memdata; -- compensate for the memory delay
         end if;
 	end process;
