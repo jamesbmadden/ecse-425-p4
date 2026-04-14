@@ -22,6 +22,7 @@ architecture behaviour of processor is
   signal s_if_addr : std_logic_vector(31 downto 0) := (others => '0');
   signal s_if_instr : std_logic_vector(31 downto 0) := (others => '0');
   signal s_pc_out : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_pc_stall : std_logic;
 
   -- register stage signals
   signal s_re_pc : std_logic_vector(31 downto 0) := (others => '0');
@@ -258,10 +259,12 @@ architecture behaviour of processor is
       new_rw : in std_logic;
 		  new_alu_res : in std_logic_vector(31 downto 0);
 		  new_memdata : in std_logic_vector(31 downto 0);
+      new_rd : in std_logic_vector(4 downto 0);
       mtr : out std_logic;
       rw : out std_logic;
       alu_res : out std_logic_vector(31 downto 0);
-      memdata : out std_logic_vector(31 downto 0)
+      memdata : out std_logic_vector(31 downto 0);
+      rd : out std_logic_vector(4 downto 0)
 	  );
   end component;
 
@@ -276,12 +279,14 @@ begin
   s_if_addr <= w_addr when w = '1' else s_pc_out;
   -- select what will get written back to the register
   s_wb_data <= b_wb_data when b_wb_mtr = '1' else b_wb_alu_res;
+  -- whether the pc should stall
+  s_pc_stall <= w or s_hdu_stall;
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
 	if_pc: pc port map (
 		clk => clk,
-		stall => (w or s_hdu_stall), -- program shouldn't continue while instrmem write is going
+		stall => s_pc_stall, -- program shouldn't continue while instrmem write is going
 		w => b_mem_btaken,
     w_addr => s_ex_alu_srcB,
     addr => s_pc_out
