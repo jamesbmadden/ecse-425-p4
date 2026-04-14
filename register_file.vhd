@@ -1,53 +1,54 @@
-library.IEEE
-use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
+library ieee;
+use IEEE.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity register_file is
     port (
-        clk : in std_logic;
-        reset : in std_logic;
-        reg_write : in std_logic;
-
-        rs1_addr : in std_logic_vector(4 downto 0);
-        rs2_addr : in std_logic_vector(4 downto 0);
-        rd_addr : in std_logic_vector(4 downto 0);
-
+        clk        : in std_logic;
+        reset      : in std_logic;
+        reg_write  : in std_logic;
+        
+        instr      : in std_logic_vector(31 downto 0);
         write_data : in std_logic_vector(31 downto 0);
 
-        rs1_data : out std_logic_vector(31 downto 0);
-        rs2_data : out std_logic_vector(31 downto 0);
+        rs1_data   : out std_logic_vector(31 downto 0);
+        rs2_data   : out std_logic_vector(31 downto 0)
     );
 end entity register_file;
 
-architecture Behavioral of register_file is
+architecture behaviour of register_file is
     type reg_array_type is array (0 to 31) of std_logic_vector(31 downto 0);
     signal regs : reg_array_type := (others => (others => '0'));
 
+    signal rs1_addr : std_logic_vector(4 downto 0);
+    signal rs2_addr : std_logic_vector(4 downto 0);
+    signal rd_addr  : std_logic_vector(4 downto 0);
+
 begin
+    -- extract addresses from instr
+    rs2_addr <= instr(24 downto 20);
+    rs1_addr <= instr(19 downto 15);
+    rd_addr  <= instr(11 downto 7);
+
     process(clk)
     begin
         if rising_edge(clk) then
-            -- reset to clear all registers
             if reset = '1' then
                 regs <= (others => (others => '0'));
-
             else
-            -- write if enabled
-            if reg_write = '1' and rd_addr /= "0000" then
-                regs(to_integer(unsigned(rd_addr))) <= write_data;
+                -- write if enabled and not writing to x0
+                if reg_write = '1' and rd_addr /= "00000" then
+                    regs(to_integer(unsigned(rd_addr))) <= write_data;
+                end if;
+
+                -- x0 must be 0
+                regs(0) <= (others => '0');
             end if;
-
-            -- keep x0 forced to zero
-            regs(0) <= x"00000000";
-
         end if;
-    end if;
-end process;
+    end process;
 
--- read port 1
-rs1_data <= x"00000000" when rs1_addr = "00000" else
-    regs(to_integer(unsigned(rs1_addr)));
+    -- asynchronous Read Ports
+    rs1_data <= regs(to_integer(unsigned(rs1_addr)));
+    rs2_data <= regs(to_integer(unsigned(rs2_addr)));
 
--- read port 2
-rs2_data <= x"00000000" when rs1_addr = "00000" else
-    regs(to_integer(unsigned(rs2_addr)));
+end architecture;
