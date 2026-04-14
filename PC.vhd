@@ -7,6 +7,7 @@ entity pc is
 	port (
 		-- pc will need to output current address, and take in clock and new address to set it to
 		clk : in std_logic;
+		stall : in std_logic;
 		w : in std_logic; -- whether to do a write from the w_addr input or just increment
 		w_addr : in std_logic_vector(31 downto 0);
 		addr : out std_logic_vector(31 downto 0)
@@ -24,15 +25,18 @@ begin
 	process(clk)
 	begin
 	
-		-- output the current clock
+		-- output the current count
 		addr <= s_addr;
 		
-		if w = '1' then
-			-- set the signal to the inputted addr
-			s_addr <= w_addr;
-		else
-			-- just increment
-			s_addr <= s_addr + 4;
+		-- only update the value if not stalling
+		if stall = '0' then
+			if w = '1' then
+				-- set the signal to the inputted addr
+				s_addr <= w_addr;
+			else
+				-- just increment
+				s_addr <= s_addr + 4;
+			end if;
 		end if;
 	
 	end process;
