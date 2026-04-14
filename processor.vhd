@@ -56,7 +56,7 @@ begin
     clk => clk,
     w => '0',
     addr => s_if_addr,
-    w_data => (others => '0')
+    w_data => (others => '0'),
     instr => s_if_instr
   );
 
