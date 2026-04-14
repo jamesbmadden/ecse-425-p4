@@ -69,6 +69,8 @@ architecture behaviour of processor is
   signal b_mem_reg2 : std_logic_vector(31 downto 0);
   signal b_mem_alu_res : std_logic_vector(31 downto 0);
 
+  -- memory stage signals
+
   -- declare components
   -- instruction fetch stage components
   component pc is
@@ -160,7 +162,7 @@ architecture behaviour of processor is
       reg1 : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
       instr : out std_logic_vector(31 downto 0);
-      imm : in std_logic_vector(31 downto 0);
+      imm : out std_logic_vector(31 downto 0);
       wb : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
@@ -218,12 +220,27 @@ architecture behaviour of processor is
       mr : out std_logic;
       mw : out std_logic;
       mtr : out std_logic;
-      rw : in std_logic;
+      rw : out std_logic;
       instr : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
       alu_res : out std_logic_vector(31 downto 0)
 	  );
   end component;
+
+  -- memory stage components
+  component datamem is
+    port (
+      clk : in std_logic;
+      addr : in std_logic_vector(31 downto 0);
+      writedata : in std_logic_vector(31 downto 0);
+      funct3 : in std_logic_vector(2 downto 0);
+      memwrite : in std_logic;
+      memread : in std_logic;
+      readdata : out std_logic_vector(31 downto 0);
+      waitrequest : out std_logic
+    );
+  end component;
+
 
   CONSTANT clk_period : time := 1 ns;
 
