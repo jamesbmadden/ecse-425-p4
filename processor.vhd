@@ -55,7 +55,8 @@ architecture behaviour of processor is
   -- execution stage signals
   signal s_ex_ALUControl : std_logic_vector(3 downto 0);
   signal s_ex_ALUResult : std_logic_vector(31 downto 0);
-
+  signal s_ex_alu_srcB : std_logic_vector(31 downto 0);
+  signal s_ex_btake : std_logic;
 
   -- declare components
   -- instruction fetch stage components
@@ -135,6 +136,7 @@ architecture behaviour of processor is
 		  new_reg1 : in std_logic_vector(31 downto 0);
 		  new_reg2 : in std_logic_vector(31 downto 0);
       new_instr : in std_logic_vector(31 downto 0);
+      new_imm : in std_logic_vector(31 downto 0);
       -- control unit values
       new_wb : in std_logic;
       new_mr : in std_logic;
@@ -147,6 +149,7 @@ architecture behaviour of processor is
       reg1 : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
       instr : out std_logic_vector(31 downto 0);
+      imm : in std_logic_vector(31 downto 0);
       wb : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
@@ -176,9 +179,22 @@ architecture behaviour of processor is
     );
   end component;
 
+  component comparator is
+    port (
+      rs1_data : in std_logic_vector(31 downto 0);
+      rs2_data : in std_logic_vector(31 downto 0);
+      branch_en : in std_logic;
+      funct3 : in std_logic_vector(2 downto 0);
+      branch_take : out std_logic
+    );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
+
+  -- this is the multiplexer for reg2 or immediate before the ALU
+  s_ex_alu_srcB <= b_ex_imm when b_ex_alu = '1' else b_ex_reg2;
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -240,7 +256,7 @@ begin
     new_reg1 => s_re_d1,
     new_reg2 => s_re_d2,
     new_instr => s_re_instr,
-    new_imm => s_re_imm
+    new_imm => s_re_imm,
     new_wb => '0',
     new_mr => s_c_mr,
     new_mw => s_c_mw,
@@ -272,9 +288,17 @@ begin
 
   ex_alu: ALU port map (
     srcA => b_ex_reg1,
-    srcB => b_ex_reg2,
+    srcB => s_ex_alu_srcB,
     ALUControl => s_ex_ALUControl,
-    ALUResult => sex_ex_ALUResult
+    ALUResult => s_ex_ALUResult
+  );
+
+  ex_cmp: comparator port map (
+    rs1_data => b_ex_reg1,
+    rs2_data => b_ex_reg2,
+    branch_en => b_ex_b,
+    funct3 => b_ex_instr(14 downto 12),
+    branch_take => s_ex_btake
   );
 
 -- for testing: generate a clock here
