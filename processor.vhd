@@ -5,6 +5,7 @@ use ieee.numeric_std.all;
 entity processor is
   -- port (
     -- clk : in std_logic
+    -- rst : in std_logic
   -- );
 end processor;
 
@@ -12,6 +13,7 @@ architecture behaviour of processor is
 
   -- global signals
   signal clk : std_logic; -- temporary for debugging
+  signal rst : std_logic; -- temporary for debugging
 
   -- instruction fetch stage signals
   signal s_if_addr : std_logic_vector(31 downto 0) := (others => '0');
@@ -19,9 +21,14 @@ architecture behaviour of processor is
 
   -- register stage signals
   signal s_re_pc : std_logic_vector(31 downto 0) := (others => '0');
-  signal s_re_instr :  std_logic_vector(31 downto 0) := (others => '0');
+  signal s_re_instr : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_rf_wd : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_rf_d1 : std_logic_vector(31 downto 0) := (others => '0');
+  signal s_rf_d2 : std_logic_vector(31 downto 0) := (others => '0');
+
 
   -- declare components
+  -- instruction fetch stage components
   component pc is
     port (
       clk : in std_logic;
@@ -52,6 +59,21 @@ architecture behaviour of processor is
     );
   end component;
 
+  -- register stage components
+  component register_file is
+    port (
+      clk        : in std_logic;
+      reset      : in std_logic;
+      reg_write  : in std_logic;
+      
+      instr      : in std_logic_vector(31 downto 0);
+      write_data : in std_logic_vector(31 downto 0);
+
+      rs1_data   : out std_logic_vector(31 downto 0);
+      rs2_data   : out std_logic_vector(31 downto 0)
+    );
+  end component;
+
   CONSTANT clk_period : time := 1 ns;
 
 begin
@@ -66,7 +88,6 @@ begin
     addr => s_if_addr
 	);
 
-  -- instrmem
   if_im: instrmem port map (
     clk => clk,
     w => '0',
@@ -75,13 +96,22 @@ begin
     instr => s_if_instr
   );
 
-  -- regbuf
   b_reg: regbuffer port map (
     clk => clk,
     new_pc => s_if_addr,
     new_instr => s_if_instr,
     pc => s_re_pc,
     instr => s_re_instr
+  );
+
+  -- register stage (register file, immediate generator/sign extender)
+  re_fi: register_file port map (
+    clk => clk,
+    reset => rst,
+    instr => s_re_instr,
+    write_data => (others => '0'),
+    rs1_data => s_re_d1,
+    rs2_data => s_re_d2
   );
 
 clk_process : PROCESS
