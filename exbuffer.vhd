@@ -30,7 +30,7 @@ entity exbuffer is
         b : out std_logic;
         mtr : out std_logic;
         alu : out std_logic;
-        rw : out std_logic;
+        rw : out std_logic
 	);
 end exbuffer;
 
@@ -51,8 +51,9 @@ begin
                 mtr <= '0';
                 alu <= '0';
                 rw <= '0';
-                rega <= (others => '0');
-                regb <= (others => '0');
+                reg1 <= (others => '0');
+                reg2 <= (others => '0');
+                pc <= (others => '0')
                 instr <= "00000000000000000000000000010011"; -- addi x0, x0, 0; instr
             else 
                 pc <= new_pc;
