@@ -3,10 +3,13 @@ use IEEE.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity processor is
-  -- port (
-    -- clk : in std_logic
-    -- rst : in std_logic
-  -- );
+  port (
+    -- clk : in std_logic;
+    -- rst : in std_logic;
+    w : in std_logic;
+    w_data : in std_logic_vector(31 downto 0);
+    w_addr : in std_logic_vector(31 downto 0);
+  );
 end processor;
 
 architecture behaviour of processor is
@@ -112,7 +115,7 @@ begin
   -- instruction fetch stage (pc, instrmem, regbuf)
 	if_pc: pc port map (
 		clk => clk,
-		stall => '0',
+		stall => w, -- program shouldn't continue while instrmem write is going
 		w => '0',
     w_addr => (others => '0'),
     addr => s_if_addr
@@ -120,9 +123,9 @@ begin
 
   if_im: instrmem port map (
     clk => clk,
-    w => '0',
+    w => w,
     addr => s_if_addr,
-    w_data => (others => '0'),
+    w_data => w_data,
     instr => s_if_instr
   );
 
@@ -160,6 +163,7 @@ begin
     RegWrite => s_c_rw
   );
 
+-- for testing: generate a clock here
 clk_process : PROCESS
 BEGIN
 	clk <= '0';
@@ -167,5 +171,12 @@ BEGIN
 	clk <= '1';
 	WAIT FOR clk_period/2;
 END PROCESS;
+
+write_process : process(w)
+begin
+  if w = '1' then
+    s_if_addr <= w_addr;
+  end if;
+end process;
 
 end behaviour;
