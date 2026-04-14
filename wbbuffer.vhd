@@ -12,8 +12,8 @@ entity wbbuffer is
         new_rw : in std_logic;
 		new_alu_res : in std_logic_vector(31 downto 0);
 		new_memdata : in std_logic_vector(31 downto 0);
-        mtr : in std_logic;
-        rw : in std_logic;
+        mtr : out std_logic;
+        rw : out std_logic;
         alu_res : out std_logic_vector(31 downto 0);
         memdata : out std_logic_vector(31 downto 0)
 	);
