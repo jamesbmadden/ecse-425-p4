@@ -8,7 +8,7 @@ entity processor is
     -- rst : in std_logic;
     w : in std_logic;
     w_data : in std_logic_vector(31 downto 0);
-    w_addr : in std_logic_vector(31 downto 0);
+    w_addr : in std_logic_vector(31 downto 0)
   );
 end processor;
 
