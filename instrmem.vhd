@@ -10,11 +10,13 @@ entity instrmem is
 		clk : in std_logic;
 		addr : in std_logic_vector(31 downto 0);
 		instr : out std_logic_vector(31 downto 0);
-		waitrequest : out std_logic;
 	);
 end instrmem;
 
 architecture behaviour of instrmem is
+
+	signal memread : std_logic := '0';
+	signal waitrequest : std_logic;
 
 	component memory is
 		PORT (
@@ -30,13 +32,19 @@ architecture behaviour of instrmem is
 	
 begin
 
+	-- on clock cycle, ask for a new read. it will be done on the next clock cycle
+	process(clk)
+	begin
+		memread <= '1';
+	end process;
+
 	-- connect to the appropriate ports of a memory instance
 	MEM: memory port map (
 		clock => clk,
 		writedata => open,
 		address => addr,
 		memwrite => open,
-		memread => '1',
+		memread => memread,
 		readdata => instr,
 		waitrequest => waitrequest
 	);
