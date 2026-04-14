@@ -27,6 +27,7 @@ architecture behaviour of processor is
   signal s_re_d2 : std_logic_vector(31 downto 0) := (others => '0');
   signal s_re_imm : std_logic_vector(31 downto 0) := (others => '0');
   signal s_c_b : std_logic := '0'; -- control unit things to pass to the exbuffer
+  signal s_c_alupc : std_logic := '0';
   signal s_c_alu : std_logic := '0';
   signal s_c_mr : std_logic := '0'; -- MemRed
   signal s_c_mw : std_logic := '0'; -- MemWrite
@@ -38,6 +39,7 @@ architecture behaviour of processor is
   signal b_ex_mw : std_logic := '0';
   signal b_ex_b : std_logic := '0';
   signal b_ex_mtr : std_logic := '0';
+  signal b_ex_alupc : std_logic := '0';
   signal b_ex_alu : std_logic := '0';
   signal b_ex_rw : std_logic := '0';
   signal b_ex_pc : std_logic_vector(31 downto 0);
@@ -49,6 +51,7 @@ architecture behaviour of processor is
   -- execution stage signals
   signal s_ex_ALUControl : std_logic_vector(3 downto 0);
   signal s_ex_ALUResult : std_logic_vector(31 downto 0);
+  signal s_ex_alu_srcA : std_logic_vector(31 downto 0);
   signal s_ex_alu_srcB : std_logic_vector(31 downto 0);
   signal s_ex_target : std_logic_vector(31 downto 0);
   signal s_ex_btake : std_logic;
@@ -141,6 +144,7 @@ architecture behaviour of processor is
     port (
       opcode : in  std_logic_vector (6 downto 0);
       --execution
+      ALUPc : out std_logic;
       ALUSrc : out std_logic;
       --memory
       Branch : out std_logic;
@@ -167,6 +171,7 @@ architecture behaviour of processor is
       new_mw : in std_logic;
       new_b : in std_logic;
       new_mtr : in std_logic;
+      new_alupc : in std_logic;
       new_alu : in std_logic;
       new_rw : in std_logic;
       pc : out std_logic_vector(31 downto 0);
@@ -178,6 +183,7 @@ architecture behaviour of processor is
       mw : out std_logic;
       b : out std_logic;
       mtr : out std_logic;
+      alupc : out std_logic;
       alu : out std_logic;
       rw : out std_logic
 	  );
@@ -274,6 +280,7 @@ architecture behaviour of processor is
 begin
 
   -- this is the multiplexer for reg2 or immediate before the ALU
+  s_ex_alu_srcA <= b_ex_pc when b_ex_alupc = '1' else b_ex_reg1;
   s_ex_alu_srcB <= b_ex_imm when b_ex_alu = '1' else b_ex_reg2;
   -- select write address in write mode, otherwise pc output
   s_if_addr <= w_addr when w = '1' else s_pc_out;
@@ -330,6 +337,7 @@ begin
 
   re_ct: control port map (
     opcode => s_re_instr(6 downto 0),
+    ALUPc => s_c_alupc,
     ALUSrc => s_c_alu,
     Branch => s_c_b,
     MemRead => s_c_mr,
@@ -351,6 +359,7 @@ begin
     new_mw => s_c_mw,
     new_b => s_c_b,
     new_mtr => s_c_mtr,
+    new_alupc => s_c_alupc,
     new_alu => s_c_alu,
     new_rw => s_c_rw,
     pc => b_ex_pc,
@@ -362,6 +371,7 @@ begin
     mw => b_ex_mw,
     b => b_ex_b,
     mtr => b_ex_mtr,
+    alupc => b_ex_alupc,
     alu => b_ex_alu,
     rw => b_ex_rw
   );
@@ -375,7 +385,7 @@ begin
   );
 
   ex_alu: ALU port map (
-    srcA => b_ex_reg1,
+    srcA => s_ex_alu_srcA,
     srcB => s_ex_alu_srcB,
     ALUControl => s_ex_ALUControl,
     ALUResult => s_ex_ALUResult

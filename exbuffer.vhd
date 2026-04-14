@@ -18,6 +18,7 @@ entity exbuffer is
         new_mw : in std_logic;
         new_b : in std_logic;
         new_mtr : in std_logic;
+        new_alupc : in std_logic;
         new_alu : in std_logic;
         new_rw : in std_logic;
         pc : out std_logic_vector(31 downto 0);
@@ -29,6 +30,7 @@ entity exbuffer is
         mw : out std_logic;
         b : out std_logic;
         mtr : out std_logic;
+        alupc : out std_logic;
         alu : out std_logic;
         rw : out std_logic
 	);
@@ -49,6 +51,7 @@ begin
                 b <= '0';
                 mtr <= '0';
                 alu <= '0';
+                alupc <= '0';
                 rw <= '0';
                 reg1 <= (others => '0');
                 reg2 <= (others => '0');
@@ -65,6 +68,7 @@ begin
                 mw <= new_mw;
                 b <= new_b;
                 mtr <= new_mtr;
+                alupc <= new_alupc;
                 alu <= new_alu;
                 rw <= new_rw;
             end if;

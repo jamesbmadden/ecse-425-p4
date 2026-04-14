@@ -4,6 +4,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity control is
     Port (opcode : in  std_logic_vector (6 downto 0);
         --execution
+        ALUPc : out std_logic;
         ALUSrc : out std_logic;
         --memory
         Branch : out std_logic;
@@ -19,6 +20,7 @@ begin
     process(opcode)
     begin
         --default
+        ALUPc <= '0';
         ALUSrc <= '0';
         Branch <= '0';
         MemRead <= '0';
@@ -61,15 +63,18 @@ begin
 
             --auipc
             when "0010111" =>
+                ALUPc <= '1'; --use PC instead of reg1
                 ALUSrc <= '1'; --add immediate to PC
                 RegWrite <= '1';
 
             --jal
             when "1101111" =>
+                ALUPc <= '1'; --use PC instead of reg1
                 RegWrite <= '1';
 
             --jalr
             when "1100111" =>
+                ALUPc <= '1'; --use PC instead of reg1
                 ALUSrc <= '1'; --base+offset
                 RegWrite <= '1';
 
