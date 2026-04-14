@@ -2,78 +2,91 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity ALU_Decoder is
-    Port ( opcode     : in  STD_LOGIC_VECTOR (6 downto 0);
-           funct3     : in  STD_LOGIC_VECTOR (2 downto 0);
-           funct7     : in  STD_LOGIC_VECTOR (6 downto 0);
-           ALUControl : out STD_LOGIC_VECTOR (3 downto 0));
+--break down the bits
+    Port (opcode : in std_logic_vector(6 downto 0);
+        funct3 : in std_logic_vector(2 downto 0);
+        funct7 : in std_logic_vector(6 downto 0);
+        ALUControl : out std_logic_vector(3 downto 0));
 end ALU_Decoder;
 
-architecture Behavioral of ALU_Decoder is
+architecture behaviour of ALU_Decoder is
 begin
     process(opcode, funct3, funct7)
     begin
-        -- Default assignment to prevent latches
         ALUControl <= "0000"; 
 
         case opcode is
-            when "0110011" => -- R-Type and Multiply
+            when "0110011" => --r type and multiply
+
+                --add
                 if funct7 = "0000000" and funct3 = "000" then
-                    ALUControl <= "0000"; -- add
+                    ALUControl <= "0000";
+
+                --sub
                 elsif funct7 = "0100000" and funct3 = "000" then
-                    ALUControl <= "0001"; -- sub
+                    ALUControl <= "0001";
+
+                --mul
                 elsif funct7 = "0000001" and funct3 = "000" then
-                    ALUControl <= "0111"; -- mul
+                    ALUControl <= "0111";
+
+                --sll
                 elsif funct7 = "0000000" and funct3 = "001" then
-                    ALUControl <= "1000"; -- sll
-                elsif funct7 = "0000000" and funct3 = "010" then
-                    ALUControl <= "0101"; -- slt
-                elsif funct7 = "0000000" and funct3 = "011" then
-                    ALUControl <= "0110"; -- sltu
-                elsif funct7 = "0000000" and funct3 = "100" then
-                    ALUControl <= "0100"; -- xor
+                    ALUControl <= "1000";
+
+                --srl
                 elsif funct7 = "0000000" and funct3 = "101" then
-                    ALUControl <= "1001"; -- srl
+                    ALUControl <= "1001";
+
+                --sra
                 elsif funct7 = "0100000" and funct3 = "101" then
-                    ALUControl <= "1010"; -- sra
+                    ALUControl <= "1010";
+
+                --or
                 elsif funct7 = "0000000" and funct3 = "110" then
-                    ALUControl <= "0011"; -- or
+                    ALUControl <= "0011";
+
+                --and
                 elsif funct7 = "0000000" and funct3 = "111" then
-                    ALUControl <= "0010"; -- and
+                    ALUControl <= "0010";
+
                 end if;
                 
-            when "0010011" => -- I-Type ALU
+            when "0010011" => --i type
+                --addi
                 if funct3 = "000" then
-                    ALUControl <= "0000"; -- addi
+                    ALUControl <= "0000";
+
+                --slti
                 elsif funct3 = "010" then
-                    ALUControl <= "0101"; -- slti
-                elsif funct3 = "011" then
-                    ALUControl <= "0110"; -- sltiu
+                    ALUControl <= "0101";
+
+                --xori
                 elsif funct3 = "100" then
-                    ALUControl <= "0100"; -- xori
+                    ALUControl <= "0100";
+
+                --ori
                 elsif funct3 = "110" then
-                    ALUControl <= "0011"; -- ori
+                    ALUControl <= "0011";
+
+                --andi
                 elsif funct3 = "111" then
-                    ALUControl <= "0010"; -- andi
-                -- Immediate shifts use the funct7 space (imm[11:5]) to differentiate logical/arithmetic
-                elsif funct7 = "0000000" and funct3 = "001" then
-                    ALUControl <= "1000"; -- slli
-                elsif funct7 = "0000000" and funct3 = "101" then
-                    ALUControl <= "1001"; -- srli
-                elsif funct7 = "0100000" and funct3 = "101" then
-                    ALUControl <= "1010"; -- srai
-                end if;
+                    ALUControl <= "0010";
 
-            when "0000011" | "0100011" => -- Loads and Stores
-                ALUControl <= "0000"; -- Addition for memory address calculation
+            --compute memory address for lw and sw: r1+offset
+            when "0000011" | "0100011" =>
+                ALUControl <= "0000";
 
+            --beq, bne, blt, bge: subtract to compare
             when "1100011" => -- Branches
-                ALUControl <= "0001"; -- Subtraction for equality/magnitude comparison
+                ALUControl <= "0001";
 
-            when "0110111" | "0010111" | "1101111" | "1100111" => -- LUI, AUIPC, JAL, JALR
-                ALUControl <= "0000"; -- Addition for PC/address calculations
+            lui, auipc, jal, jalr: addition to compute pc or address
+            when "0110111" | "0010111" | "1101111" | "1100111" =>
+                ALUControl <= "0000";
 
             when others =>
-                ALUControl <= "0000"; -- Default fallback to prevent latches
+                ALUControl <= "0000";
         end case;
     end process;
-end Behavioral;
+end behaviour;
