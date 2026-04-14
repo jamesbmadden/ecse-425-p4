@@ -7,7 +7,6 @@ entity membuffer is
 	port (
 		clk : in std_logic;
         new_btaken : in std_logic;
-        new_wb : in std_logic;
         new_mr : in std_logic;
         new_mw : in std_logic;
         new_mtr : in std_logic;
@@ -16,7 +15,6 @@ entity membuffer is
         new_reg2 : in std_logic_vector(31 downto 0);
         new_alu_res : in std_logic_vector(31 downto 0);
         btaken : out std_logic;
-        wb : out std_logic;
         mr : out std_logic;
         mw : out std_logic;
         mtr : out std_logic;
@@ -36,7 +34,6 @@ begin
 	begin
         if rising_edge(clk) then
             btaken <= new_btaken;
-            wb <= new_wb;
             mr <= new_mr;
             mw <= new_mw;
             mtr <= new_mtr;

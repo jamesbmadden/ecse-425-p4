@@ -14,7 +14,6 @@ entity exbuffer is
         new_instr : in std_logic_vector(31 downto 0);
         new_imm : in std_logic_vector(31 downto 0);
         -- control unit values
-        new_wb : in std_logic;
         new_mr : in std_logic;
         new_mw : in std_logic;
         new_b : in std_logic;
@@ -26,7 +25,6 @@ entity exbuffer is
         reg2 : out std_logic_vector(31 downto 0);
         instr : out std_logic_vector(31 downto 0);
         imm : out std_logic_vector(31 downto 0);
-        wb : out std_logic;
         mr : out std_logic;
         mw : out std_logic;
         b : out std_logic;
@@ -46,7 +44,6 @@ begin
         if rising_edge(clk) then 
             if stall = '1' then
                 -- set the outputs to a stall instr
-                wb <= '0';
                 mr <= '0';
                 mw <= '0';
                 b <= '0';
@@ -64,7 +61,6 @@ begin
                 reg1 <= new_reg1;
                 reg2 <= new_reg2;
                 imm <= new_imm;
-                wb <= new_wb;
                 mr <= new_mr;
                 mw <= new_mw;
                 b <= new_b;

@@ -40,7 +40,6 @@ architecture behaviour of processor is
 
   -- execution buffer signals
   signal b_ex_stall : std_logic := '0';
-  signal b_ex_wb : std_logic := '0';
   signal b_ex_mr : std_logic := '0';
   signal b_ex_mw : std_logic := '0';
   signal b_ex_b : std_logic := '0';
@@ -61,7 +60,6 @@ architecture behaviour of processor is
 
   -- memory buffer signals
   signal b_mem_btaken : std_logic;
-  signal b_mem_wb : std_logic;
   signal b_mem_mr : std_logic;
   signal b_mem_mw : std_logic;
   signal b_mem_mtr : std_logic;
@@ -154,7 +152,6 @@ architecture behaviour of processor is
       new_instr : in std_logic_vector(31 downto 0);
       new_imm : in std_logic_vector(31 downto 0);
       -- control unit values
-      new_wb : in std_logic;
       new_mr : in std_logic;
       new_mw : in std_logic;
       new_b : in std_logic;
@@ -166,7 +163,6 @@ architecture behaviour of processor is
       reg2 : out std_logic_vector(31 downto 0);
       instr : out std_logic_vector(31 downto 0);
       imm : out std_logic_vector(31 downto 0);
-      wb : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
       b : out std_logic;
@@ -210,7 +206,6 @@ architecture behaviour of processor is
 	  port (
       clk : in std_logic;
       new_btaken : in std_logic;
-      new_wb : in std_logic;
       new_mr : in std_logic;
       new_mw : in std_logic;
       new_mtr : in std_logic;
@@ -219,7 +214,6 @@ architecture behaviour of processor is
       new_reg2 : in std_logic_vector(31 downto 0);
       new_alu_res : in std_logic_vector(31 downto 0);
       btaken : out std_logic;
-      wb : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
       mtr : out std_logic;
@@ -252,7 +246,7 @@ begin
   -- this is the multiplexer for reg2 or immediate before the ALU
   s_ex_alu_srcB <= b_ex_imm when b_ex_alu = '1' else b_ex_reg2;
   -- select write address in write mode, otherwise pc output
-  s_if_addr <= w_addr when '1' else s_pc_out;
+  s_if_addr <= w_addr when w = '1' else s_pc_out;
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -315,7 +309,6 @@ begin
     new_reg2 => s_re_d2,
     new_instr => s_re_instr,
     new_imm => s_re_imm,
-    new_wb => '0',
     new_mr => s_c_mr,
     new_mw => s_c_mw,
     new_b => s_c_b,
@@ -327,7 +320,6 @@ begin
     reg2 => b_ex_reg2,
     instr => b_ex_instr,
     imm => b_ex_imm,
-    wb => b_ex_wb,
     mr => b_ex_mr,
     mw => b_ex_mw,
     b => b_ex_b,
@@ -363,7 +355,6 @@ begin
   b_mem: membuffer port map (
     clk => clk,
     new_btaken => b_mem_btaken,
-    new_wb => b_mem_wb,
     new_mr => b_mem_mr,
     new_mw => b_mem_mw,
     new_mtr => b_mem_mtr,
@@ -372,7 +363,6 @@ begin
     new_reg2 => b_mem_reg2,
     new_alu_res => b_mem_alu_res,
     btaken => s_ex_btake,
-    wb => b_ex_wb,
     mr => b_ex_mr,
     mw => b_ex_mw,
     mtr => b_ex_mtr,
