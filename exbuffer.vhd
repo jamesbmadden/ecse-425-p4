@@ -53,7 +53,7 @@ begin
                 rw <= '0';
                 reg1 <= (others => '0');
                 reg2 <= (others => '0');
-                pc <= (others => '0')
+                pc <= (others => '0');
                 instr <= "00000000000000000000000000010011"; -- addi x0, x0, 0; instr
             else 
                 pc <= new_pc;
