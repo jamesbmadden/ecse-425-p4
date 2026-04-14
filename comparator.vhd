@@ -2,15 +2,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
-entity Comparator is
+entity comparator is
     Port (rs1_data : in std_logic_vector(31 downto 0);
         rs2_data : in std_logic_vector(31 downto 0);
-        branch_en : in STD_LOGIC; --branch signal
+        branch_en : in std_logic; --branch signal
         funct3 : in std_logic_vector(2 downto 0);  --from the instruction
-        branch_take : out STD_LOGIC); --output flag
-end Comparator;
+        branch_take : out std_logic); --output flag
+end comparator;
 
-architecture behaviour of Comparator is
+architecture behaviour of comparator is
 begin
     process(rs1_data, rs2_data, branch_en, funct3)
         variable A_signed : signed(31 downto 0);
