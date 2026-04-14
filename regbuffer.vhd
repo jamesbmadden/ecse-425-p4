@@ -8,6 +8,7 @@ entity regbuffer is
 	port (
 		-- instrmem has to take in an address and return a value
 		clk : in std_logic;
+        stall : in std_logic;
 		new_pc : in std_logic_vector(31 downto 0);
 		new_instr : in std_logic_vector(31 downto 0);
         pc : out std_logic_vector(31 downto 0);
@@ -26,9 +27,11 @@ begin
     process(clk)
 	begin
         if rising_edge(clk) then
-            pc <= s_pc;
-            instr <= new_instr; -- since it's already delayed a clock cycle
-            s_pc <= new_pc;
+            if stall = '0' then
+                pc <= s_pc;
+                instr <= new_instr; -- since it's already delayed a clock cycle
+                s_pc <= new_pc;
+            end if;
         end if;
 	end process;
 
