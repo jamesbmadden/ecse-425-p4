@@ -72,6 +72,7 @@ begin
             --jal
             when "1101111" =>
                 ALUPc <= '1'; --use PC instead of reg1
+                ALUSrc <= '1';
                 RegWrite <= '1';
                 IsJump <= '1';
 

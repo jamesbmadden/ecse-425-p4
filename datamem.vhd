@@ -127,7 +127,7 @@ architecture behaviour of datamem is
 
 begin
 
-    addrint <= to_integer(unsigned(addr(14 downto 0)));
+    addrint <= to_integer(unsigned(addr(14 downto 0))) when to_integer(unsigned(addr(14 downto 0))) <= 32764 else 0;
 
     mem_inst : memory
         port map(
@@ -144,7 +144,7 @@ begin
     begin
         memread_i <= '0';
         memwrite_i <= '0';
-        mem_addr <= addrint;
+        mem_addr <= 0;
         mem_writedata <= (others => '0');
         waitrequest_reg <= '0';
 

@@ -35,7 +35,7 @@ architecture behaviour of instrmem is
 	
 begin
 
-	addrint <= to_integer(unsigned(addr(14 downto 0)));
+	addrint <= to_integer(unsigned(addr(14 downto 0))) when to_integer(unsigned(addr(14 downto 0))) <= 32764 else 0;
 
 	-- on clock cycle, ask for a new read. it will be done on the next clock cycle
 	process(clk)
