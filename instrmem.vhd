@@ -19,7 +19,7 @@ architecture behaviour of instrmem is
 
 	signal memread : std_logic := '0';
 	signal waitrequest : std_logic;
-	signal addrint : integer := 0;
+	signal addrint : integer range 0 to 32767 := 0;
 
 	component memory is
 		PORT (
@@ -35,7 +35,7 @@ architecture behaviour of instrmem is
 	
 begin
 
-	addrint <= to_integer(unsigned(addr));
+	addrint <= to_integer(unsigned(addr(14 downto 0)));
 
 	-- on clock cycle, ask for a new read. it will be done on the next clock cycle
 	process(clk)
