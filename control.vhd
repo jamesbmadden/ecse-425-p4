@@ -6,6 +6,7 @@ entity control is
         --execution
         ALUPc : out std_logic;
         ALUSrc : out std_logic;
+        IsJump : out std_logic;
         --memory
         Branch : out std_logic;
         MemRead : out std_logic;
@@ -22,6 +23,7 @@ begin
         --default
         ALUPc <= '0';
         ALUSrc <= '0';
+        IsJump <= '0';
         Branch <= '0';
         MemRead <= '0';
         MemWrite <= '0';
@@ -71,11 +73,13 @@ begin
             when "1101111" =>
                 ALUPc <= '1'; --use PC instead of reg1
                 RegWrite <= '1';
+                IsJump <= '1';
 
             --jalr
             when "1100111" =>
                 ALUSrc <= '1'; --base+offset
                 RegWrite <= '1';
+                IsJump <= '1';
 
             --others
             when others =>

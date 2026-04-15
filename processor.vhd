@@ -33,6 +33,7 @@ architecture behaviour of processor is
   signal s_c_mw : std_logic := '0'; -- MemWrite
   signal s_c_mtr : std_logic := '0'; -- MemToReg
   signal s_c_rw : std_logic := '0'; -- RegWrite
+  signal s_c_jump : std_logic := '0';
 
   -- execution buffer signals
   signal b_ex_mr : std_logic := '0';
@@ -42,6 +43,7 @@ architecture behaviour of processor is
   signal b_ex_alupc : std_logic := '0';
   signal b_ex_alu : std_logic := '0';
   signal b_ex_rw : std_logic := '0';
+  signal b_ex_jump : std_logic := '0';
   signal b_ex_pc : std_logic_vector(31 downto 0);
   signal b_ex_reg1 : std_logic_vector(31 downto 0);
   signal b_ex_reg2 : std_logic_vector(31 downto 0);
@@ -53,6 +55,7 @@ architecture behaviour of processor is
   signal s_ex_ALUResult : std_logic_vector(31 downto 0);
   signal s_ex_alu_srcA : std_logic_vector(31 downto 0);
   signal s_ex_alu_srcB : std_logic_vector(31 downto 0);
+  signal s_ex_pc_incr : std_logic_vector(31 downto 0);
   signal s_ex_btake : std_logic;
 
   -- memory buffer signals
@@ -61,9 +64,11 @@ architecture behaviour of processor is
   signal b_mem_mw : std_logic;
   signal b_mem_mtr : std_logic;
   signal b_mem_rw : std_logic;
+  signal b_mem_jump : std_logic;
   signal b_mem_instr : std_logic_vector(31 downto 0);
   signal b_mem_reg2 : std_logic_vector(31 downto 0);
   signal b_mem_alu_res : std_logic_vector(31 downto 0);
+  signal b_mem_pc_incr : std_logic_vector(31 downto 0);
 
   -- memory stage signals
   signal s_mem_data : std_logic_vector(31 downto 0);
@@ -72,8 +77,10 @@ architecture behaviour of processor is
   -- writeback buffer signals
   signal b_wb_mtr : std_logic;
   signal b_wb_rw : std_logic;
+  signal b_wb_jump : std_logic;
   signal b_wb_alu_res : std_logic_vector(31 downto 0);
   signal b_wb_data : std_logic_vector(31 downto 0);
+  signal b_wb_pc_incr : std_logic_vector(31 downto 0);
   signal b_wb_rd : std_logic_vector(4 downto 0);
 
   -- writeback stage signals
@@ -144,6 +151,7 @@ architecture behaviour of processor is
       --execution
       ALUPc : out std_logic;
       ALUSrc : out std_logic;
+      IsJump : out std_logic;
       --memory
       Branch : out std_logic;
       MemRead : out std_logic;
@@ -172,6 +180,7 @@ architecture behaviour of processor is
       new_alupc : in std_logic;
       new_alu : in std_logic;
       new_rw : in std_logic;
+      new_jump : in std_logic;
       pc : out std_logic_vector(31 downto 0);
       reg1 : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
@@ -183,7 +192,8 @@ architecture behaviour of processor is
       mtr : out std_logic;
       alupc : out std_logic;
       alu : out std_logic;
-      rw : out std_logic
+      rw : out std_logic;
+      jump : out std_logic
 	  );
   end component;
 
@@ -225,17 +235,21 @@ architecture behaviour of processor is
       new_mw : in std_logic;
       new_mtr : in std_logic;
       new_rw : in std_logic;
+      new_jump : in std_logic;
       new_instr : in std_logic_vector(31 downto 0);
       new_reg2 : in std_logic_vector(31 downto 0);
       new_alu_res : in std_logic_vector(31 downto 0);
+      new_pc_incr : in std_logic_vector(31 downto 0);
       btaken : out std_logic;
       mr : out std_logic;
       mw : out std_logic;
       mtr : out std_logic;
       rw : out std_logic;
+      jump : out std_logic;
       instr : out std_logic_vector(31 downto 0);
       reg2 : out std_logic_vector(31 downto 0);
-      alu_res : out std_logic_vector(31 downto 0)
+      alu_res : out std_logic_vector(31 downto 0);
+      pc_incr : in std_logic_vector(31 downto 0)
 	  );
   end component;
 
@@ -259,13 +273,17 @@ architecture behaviour of processor is
 		  clk : in std_logic;
       new_mtr : in std_logic;
       new_rw : in std_logic;
+      new_jump : in std_logic;
 		  new_alu_res : in std_logic_vector(31 downto 0);
 		  new_memdata : in std_logic_vector(31 downto 0);
+      new_pc_incr : in std_logic_vector(31 downto 0);
       new_rd : in std_logic_vector(4 downto 0);
       mtr : out std_logic;
       rw : out std_logic;
+      jump : out std_logic;
       alu_res : out std_logic_vector(31 downto 0);
       memdata : out std_logic_vector(31 downto 0);
+      pc_incr : in std_logic_vector(31 downto 0);
       rd : out std_logic_vector(4 downto 0)
 	  );
   end component;
@@ -281,9 +299,11 @@ begin
   -- select write address in write mode, otherwise pc output
   s_if_addr <= w_addr when w = '1' else s_pc_out;
   -- select what will get written back to the register
-  s_wb_data <= b_wb_data when b_wb_mtr = '1' else b_wb_alu_res;
+  s_wb_data <= b_wb_pc_incr when b_wb_jump = '1' else b_wb_data when b_wb_mtr = '1' else b_wb_alu_res;
   -- whether the pc should stall
   s_pc_stall <= w or s_hdu_stall;
+  -- incremented pc for jump operations
+  s_ex_pc_incr <= std_logic_vector(unsigned(b_ex_pc) + 4);
 	
   -- connect to the appropriate ports of a memory instance
   -- instruction fetch stage (pc, instrmem, regbuf)
@@ -333,6 +353,7 @@ begin
     opcode => s_re_instr(6 downto 0),
     ALUPc => s_c_alupc,
     ALUSrc => s_c_alu,
+    IsJump => s_c_jump,
     Branch => s_c_b,
     MemRead => s_c_mr,
     MemWrite => s_c_mw,
@@ -356,6 +377,7 @@ begin
     new_alupc => s_c_alupc,
     new_alu => s_c_alu,
     new_rw => s_c_rw,
+    new_jump => s_c_jump,
     pc => b_ex_pc,
     reg1 => b_ex_reg1,
     reg2 => b_ex_reg2,
@@ -367,7 +389,8 @@ begin
     mtr => b_ex_mtr,
     alupc => b_ex_alupc,
     alu => b_ex_alu,
-    rw => b_ex_rw
+    rw => b_ex_rw,
+    jump => b_ex_jump
   );
 
   -- execution stage components
@@ -401,17 +424,21 @@ begin
     mw => b_mem_mw,
     mtr => b_mem_mtr,
     rw => b_mem_rw,
+    jump => b_mem_jump,
     instr => b_mem_instr,
     reg2 => b_mem_reg2,
     alu_res => b_mem_alu_res,
+    pc_incr => b_mem_pc_incr,
     new_btaken => s_ex_btake,
     new_mr => b_ex_mr,
     new_mw => b_ex_mw,
     new_mtr => b_ex_mtr,
     new_rw => b_ex_rw,
+    new_jump => b_ex_jump,
     new_instr => b_ex_instr,
     new_reg2 => b_ex_reg2,
-    new_alu_res => s_ex_ALUResult
+    new_alu_res => s_ex_ALUResult,
+    new_pc_incr => s_ex_pc_incr
   );
 
   -- memory stage components
@@ -431,14 +458,18 @@ begin
     clk => clk,
     new_mtr => b_mem_mtr,
     new_rw => b_mem_rw,
+    new_jump => b_mem_jump,
 		new_alu_res => b_mem_alu_res,
 		new_memdata => s_mem_data,
     new_rd => b_mem_instr(11 downto 7), -- rd from the current instr
+    new_pc_incr => b_mem_pc_incr,
     mtr => b_wb_mtr,
     rw => b_wb_rw,
+    jump => b_wb_jump,
     alu_res => b_wb_alu_res,
     memdata => b_wb_data,
-    rd => b_wb_rd
+    rd => b_wb_rd,
+    pc_incr => b_wb_pc_incr
   );
 
 -- hazard detection 

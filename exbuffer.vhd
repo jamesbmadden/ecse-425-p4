@@ -8,6 +8,7 @@ entity exbuffer is
 		-- instrmem has to take in an address and return a value
 		clk : in std_logic;
         stall : in std_logic;
+        flush : in std_logic;
         new_pc : in std_logic_vector(31 downto 0);
 		new_reg1 : in std_logic_vector(31 downto 0);
 		new_reg2 : in std_logic_vector(31 downto 0);
@@ -21,6 +22,7 @@ entity exbuffer is
         new_alupc : in std_logic;
         new_alu : in std_logic;
         new_rw : in std_logic;
+        new_jump : in std_logic;
         pc : out std_logic_vector(31 downto 0);
         reg1 : out std_logic_vector(31 downto 0);
         reg2 : out std_logic_vector(31 downto 0);
@@ -32,7 +34,8 @@ entity exbuffer is
         mtr : out std_logic;
         alupc : out std_logic;
         alu : out std_logic;
-        rw : out std_logic
+        rw : out std_logic;
+        jump : out std_logic
 	);
 end exbuffer;
 
@@ -44,7 +47,7 @@ begin
     process(clk)
 	begin
         if rising_edge(clk) then 
-            if stall = '1' then
+            if stall = '1' or flush = '1' then
                 -- set the outputs to a stall instr
                 mr <= '0';
                 mw <= '0';
@@ -53,6 +56,7 @@ begin
                 alu <= '0';
                 alupc <= '0';
                 rw <= '0';
+                jump <= '0';
                 reg1 <= (others => '0');
                 reg2 <= (others => '0');
                 pc <= (others => '0');
@@ -71,6 +75,7 @@ begin
                 alupc <= new_alupc;
                 alu <= new_alu;
                 rw <= new_rw;
+                jump <= new_jump;
             end if;
         end if;
 	end process;
