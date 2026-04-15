@@ -115,6 +115,7 @@ architecture behaviour of processor is
     port (
       clk : in std_logic;
       stall : in std_logic;
+      flush : in std_logic;
       new_pc : in std_logic_vector(31 downto 0);
       new_instr : in std_logic_vector(31 downto 0);
       pc : out std_logic_vector(31 downto 0);
@@ -167,6 +168,7 @@ architecture behaviour of processor is
     port (
 		  clk : in std_logic;
       stall : in std_logic;
+      flush : in std_logic;
       new_pc : in std_logic_vector(31 downto 0);
 		  new_reg1 : in std_logic_vector(31 downto 0);
 		  new_reg2 : in std_logic_vector(31 downto 0);
@@ -230,6 +232,7 @@ architecture behaviour of processor is
   component membuffer is
 	  port (
       clk : in std_logic;
+      flush : in std_logic;
       new_btaken : in std_logic;
       new_mr : in std_logic;
       new_mw : in std_logic;
