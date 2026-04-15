@@ -328,6 +328,7 @@ begin
 
   b_reg: regbuffer port map (
     clk => clk,
+    flush => b_mem_btaken,
     stall => s_hdu_stall,
     new_pc => s_if_addr,
     new_instr => s_if_instr,
@@ -368,6 +369,7 @@ begin
   b_ex: exbuffer port map (
     clk => clk,
     stall => s_hdu_stall,
+    flush => b_mem_btaken,
     new_pc => s_re_pc,
     new_reg1 => s_re_d1,
     new_reg2 => s_re_d2,
@@ -422,6 +424,7 @@ begin
   -- memory buffer (almost there!!)
   b_mem: membuffer port map (
     clk => clk,
+    flush => b_mem_btaken,
     btaken => b_mem_btaken,
     mr => b_mem_mr,
     mw => b_mem_mw,
