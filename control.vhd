@@ -74,7 +74,6 @@ begin
 
             --jalr
             when "1100111" =>
-                ALUPc <= '1'; --use PC instead of reg1
                 ALUSrc <= '1'; --base+offset
                 RegWrite <= '1';
 
