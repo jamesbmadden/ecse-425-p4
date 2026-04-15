@@ -286,7 +286,7 @@ architecture behaviour of processor is
       jump : out std_logic;
       alu_res : out std_logic_vector(31 downto 0);
       memdata : out std_logic_vector(31 downto 0);
-      pc_incr : in std_logic_vector(31 downto 0);
+      pc_incr : out std_logic_vector(31 downto 0);
       rd : out std_logic_vector(4 downto 0)
 	  );
   end component;
