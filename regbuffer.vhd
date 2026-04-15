@@ -28,7 +28,7 @@ begin
     process(clk)
 	begin
         if rising_edge(clk) then
-            if flush = '0' then
+            if flush = '1' then
                 pc <= (others => '0');
                 instr <= (others => '0');
                 s_pc <= (others => '0');
